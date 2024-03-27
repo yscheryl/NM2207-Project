@@ -1,0 +1,91 @@
+---
+title: "Week 10 Project"
+author: "Cheryl Lim"
+date: "2024-03-27"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load required libraries
+> library(shiny)
+> library(ggplot2)
+> library(dplyr)
+> 
+> # Import dataset (replace 'your_dataset.csv' with your actual dataset)
+> data <- read.csv("C:/Users/Cheryl/Desktop/NUS/Y2S2/NM2207/Project/taylorswift-Features.csv")
+> 
+> # Define albums to exclude
+> albums_to_exclude <- c("folklore: the long pond studio sessions (from the Disney+ special) [deluxe edition]",
++                        "reputation Stadium Tour Surprise Song Playlist",
++                        "Speak Now World Tour Live",
++                        "Live From Clear Channel Stripped 2008")
+> 
+> # Filter out excluded albums
+> filtered_data <- subset(data, !album_name %in% albums_to_exclude)
+> 
+> # Define color palette for albums
+> album_colors <- rainbow(nrow(filtered_data))
+
+> # Define UI for application
+> ui <- fluidPage(
++     
++     # Application title
++     titlePanel("Characteristics of Taylor Swift's Music"),
++     
++     # Tabbed layout with input and output definitions
++     tabsetPanel(
++         # Tab for bar plots
++         tabPanel("Characteristics",
++                  fluidRow(
++                      column(width = 4,
++                             selectInput(inputId = "feature_select",
++                                         label = "Select Feature:",
++                                         choices = c("Danceability", "Acousticness", "Tempo")),
++                             plotOutput(outputId = "barplot"))
++                  )
++         ),
++         # Tab for custom text
++         tabPanel("Data Story",
++                  fluidRow(
++                      column(width = 12,
++                             textOutput("custom_text_output"))
++                  )
++         )
++     )
++ )
+> 
+> # Define server logic required to generate the bar plots and custom text
+> server <- function(input, output) {
++     
++     # Render bar plot based on selected feature
++     output$barplot <- renderPlot({
++         feature <- switch(input$feature_select,
++                           "Danceability" = "danceability",
++                           "Acousticness" = "acousticness",
++                           "Tempo" = "tempo")
++         
++         ggplot(filtered_data, aes_string(x = "album_name", y = feature, fill = "album_name")) +
++             geom_bar(stat = "identity") +
++             labs(title = paste(input$feature_select, "of Taylor Swift Albums"),
++                  x = "Album",
++                  y = input$feature_select) +
++             theme_minimal() +
++             theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
++             scale_fill_manual(values = album_colors)
++     })
++     
++     # Render custom text
++     output$custom_text_output <- renderText({
++         "It is undeniable that Taylor Swift has left a significant cultural impact in today’s society, evident not only through her numerous awards and Grammys, but also with her ongoing Eras Tour generating more than $5 billion (Music Expert Expounds on Taylor Swift’s Unmatched Cultural Impact, n.d.). Additionally, she recently became the first person to receive the title of Person of the Year by Time Magazine for her achievement in the arts (ibid), underscoring her status as a cultural icon. Having been making music for almost 2 decades, a defining factor of her influence lies in the versatility of her music, where she started off her career with country music before transitioning to pop and indie folk genres (How Taylor Swift Masterminded Global Success, Explained by SOMD Experts | School of Music and Dance, n.d.).\n\nThus, examining the characteristics of her music throughout the years will provide an understanding about what led to this phenomenal success. This leads us to the research question at hand: \"How do the characteristics of Taylor Swift's music vary across albums?\"\n\nTo do this, I picked out 3 key characteristics that define her music: (1) Danceability, (2) Acousticness, and (3) Tempo."
++     })
++ }
+> 
+> # Run the application
+> shinyApp(ui = ui, server = server)
+
